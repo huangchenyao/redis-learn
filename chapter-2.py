@@ -53,6 +53,7 @@ class WebCookie:
 
 class Cache:
     def __init__(self):
+        self._QUIT = False
         self._conn = redis.Redis()
 
     def _can_cache(self, request):
@@ -75,8 +76,30 @@ class Cache:
 
         return content
 
+    def schedule_row_cache(self, row_id, delay):
+        self._conn.zadd('delay:', {row_id: delay})
+        self._conn.zadd('schedule:', {row_id: time.time()})
+
+    def cache_rows(self):
+        while not self._QUIT:
+            next = self._conn.zrange('schedule:', 0, 0, withscores=True)
+            now = time.time()
+            if not next or next[0][1] > now:
+                time.sleep(0.05)
+                continue
+
+            row_id = next[0][0]
+            delay = self._conn.zscore('delay:', row_id)
+            if delay <= 0:
+                self._conn.zrem('delay:', row_id)
+                self._conn.zrem('schedule:', row_id)
+                self._conn.delete('inv:' + row_id)
+            else:
+                pass
+
 
 if __name__ == '__main__':
     cache = Cache()
-    response = cache.cache_request('123123', lambda x: x + 'cache')
-    print(response)
+    # response = cache.cache_request('123123', lambda x: x + 'cache')
+    # print(response)
+    cache.schedule_row_cache('1', 100)
