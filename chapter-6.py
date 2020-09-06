@@ -51,12 +51,16 @@ class AddressBook:
         self._conn.zrem('members:' + guild, user)
 
 
-if __name__ == '__main__':
-    addressBook = AddressBook()
+def address_book_demo():
+    address_book = AddressBook()
     guild1_name = 'guild1'
 
-    addressBook.join_guild(guild1_name, 'aaaass')
-    addressBook.join_guild(guild1_name, 'bbas')
-    addressBook.join_guild(guild1_name, 'acsc')
-    items = addressBook.autocomplete_on_prefix(guild1_name, '')
+    address_book.join_guild(guild1_name, 'aaaass')
+    address_book.join_guild(guild1_name, 'bbas')
+    address_book.join_guild(guild1_name, 'acsc')
+    items = address_book.autocomplete_on_prefix(guild1_name, 'a')
     print(items)
+
+
+if __name__ == '__main__':
+    address_book_demo()
