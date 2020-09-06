@@ -80,21 +80,17 @@ class GeoIP:
 
     def import_ips(self, file_name: str):
         with open(os.path.join(self._path, file_name), 'r') as csv_file:
-            pipe = self._conn.pipeline(transaction=False)
+            # pipe = self._conn.pipeline(transaction=False)
             for count, row in tqdm(enumerate(islice(csv.reader(csv_file), 1, None))):
                 score_list = self._ip_parse(row[0])
                 city_id = row[1] + '_' + str(count)
                 for score in score_list:
                     try:
-                        pipe.zadd('ip2cityid:', city_id, score)
+                        self._conn.zadd('ip2cityid:', {city_id: score})
                     except Exception as e:
                         print(e)
                         print(row)
-
-                if count % 2000 == 0:
-                    pipe.execute()
-
-            pipe.execute()
+                # pipe.execute()
 
     def import_cities(self, file_prefix: str):
         for file_name in os.listdir(self._path):
@@ -116,12 +112,13 @@ class GeoIP:
 
 
 if __name__ == '__main__':
-    data_path = '/Users/huangchenyao/downloads/GeoLite2-City-CSV_20200818'
-    geo_ip = GeoIP(data_path)
-    geo_ip.import_cities('GeoLite2-City-Locations')
-    geo_ip.import_ips('GeoLite2-City-Blocks-IPv4.csv')
+    # data_path = '/Users/huangchenyao/downloads/GeoLite2-City-CSV_20200818'
+    # geo_ip = GeoIP(data_path)
+    # geo_ip.import_cities('GeoLite2-City-Locations')
+    # geo_ip.import_ips('GeoLite2-City-Blocks-IPv4.csv')
     conn = redis.Redis()
-    print(conn.hgetall('cityid2city:2077456'))
+    conn.zadd('test:', {'abc': 123})
+    # print(conn.hgetall('cityid2city:2077456'))
 
 # ['network', 'geoname_id', 'registered_country_geoname_id', 'represented_country_geoname_id', 'is_anonymous_proxy',
 # 'is_satellite_provider', 'postal_code', 'latitude', 'longitude', 'accuracy_radius']
